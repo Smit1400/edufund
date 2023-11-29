@@ -10,8 +10,8 @@ app = Flask(__name__)
 MONGODB_HOST = 'localhost'
 MONGODB_PORT = 27017
 DBS_NAME = 'DonorsSchool'
-COLLECTION_NAME = 'projects'
-FIELDS = {'school_id': True, 'resource_type': True, 'poverty_level': True, 'date_posted': True, 'total_donations': True, '_id': False}
+COLLECTION_NAME = 'projects2'
+FIELDS = {'school_state': True, 'resource_type': True, 'poverty_level': True, 'date_posted': True, 'total_donations': True, '_id': False}
 
 
 @app.route("/")
