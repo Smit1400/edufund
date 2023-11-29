@@ -123,22 +123,26 @@ function makeGraphs(error, projectsJson, statesJson) {
 					+ "\n"
 					+ "Total Donations: " + Math.round(p["value"]) + " $";
 		})
-		
+
     // Configure the stacked bar chart
-    resourceTypePovertyLevelChart
-        .width(600)
-        .height(400)
-        .dimension(resourceTypeDim)
-        .group(highPovertyGroup, "High Poverty")
-        .stack(lowPovertyGroup, "Low Poverty")
+		resourceTypePovertyLevelChart
+		.width(600)
+		.height(450) // Increased height
+		.dimension(resourceTypeDim)
+		.group(highPovertyGroup, "High Poverty")
+		.stack(lowPovertyGroup, "Low Poverty")
 		.stack(minimalPovertyGroup, "Minimal Poverty")
-        .x(d3.scale.ordinal())
-        .xUnits(dc.units.ordinal)
-        .xAxisLabel('Resource Type')
-        .yAxisLabel('Total Donations')
-        .legend(dc.legend().x(80).y(20).itemHeight(15).gap(5))
-        .elasticY(true)
-        .margins({top: 10, right: 50, bottom: 30, left: 50});
+		.x(d3.scale.ordinal())
+		.xUnits(dc.units.ordinal)
+		.xAxisLabel('Resource Type')
+		.yAxisLabel('Total Donations')
+		.legend(dc.legend().x(80).y(20).itemHeight(15).gap(5))
+		.elasticY(true)
+		.margins({top: 10, right: 50, bottom: 50, left: 50}) // Adjusted bottom margin
+		.renderlet(function(chart){
+			chart.selectAll('g.x text')
+				.attr('class', 'x-axis-label')
+		});
 
     // Render all the charts
     dc.renderAll();

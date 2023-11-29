@@ -1450,7 +1450,7 @@ dc.coordinateGridChart = function (_chart) {
     var VERTICAL_CLASS = "vertical";
     var Y_AXIS_LABEL_CLASS = 'y-axis-label';
     var X_AXIS_LABEL_CLASS = 'x-axis-label';
-    var DEFAULT_AXIS_LABLEL_PADDING = 12;
+    var DEFAULT_AXIS_LABLEL_PADDING = 15;
 
     _chart = dc.colorChart(dc.marginable(dc.baseChart(_chart)));
 
@@ -1854,6 +1854,7 @@ dc.coordinateGridChart = function (_chart) {
 
         var axisYLab = g.selectAll("text."+Y_AXIS_LABEL_CLASS);
         if (axisYLab.empty() && _chart.yAxisLabel())
+        
         axisYLab = g.append('text')
             .attr("transform", "translate(" + _yAxisLabelPadding + "," + _chart.yAxisHeight()/2 + "),rotate(-90)")
             .attr('class', Y_AXIS_LABEL_CLASS)
