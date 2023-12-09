@@ -1,9 +1,6 @@
 from flask import Flask
 from flask import render_template
-import json
 import pandas as pd
-from bson import json_util
-from bson.json_util import dumps
 
 app = Flask(__name__)
 
