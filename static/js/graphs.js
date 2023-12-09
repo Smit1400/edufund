@@ -16,6 +16,7 @@ function makeGraphs(error, projectsJson, statesJson) {
         d["date_posted"] = dateFormat.parse(d["date_posted"]);
         d["date_posted"].setDate(1);
         d["total_donations"] = +d["total_donations"]; // Convert to number
+        // d["num_projects"] = +d["num_projects"]; 
     });
 
     // Create a Crossfilter instance
@@ -27,6 +28,10 @@ function makeGraphs(error, projectsJson, statesJson) {
     var povertyLevelDim = ndx.dimension(function(d) { return d["poverty_level"]; });
     var stateDim = ndx.dimension(function(d) { return d["school_state"]; });
     var totalDonationsDim  = ndx.dimension(function(d) { return d["total_donations"]; });
+    var gradeLevelDim = ndx.dimension(function(d) { return d["grade_level"]; });
+    var totalDonationsByGrade = gradeLevelDim.group().reduceSum(function(d) { 
+        return d["total_donations"]; 
+    });
 
     // Calculate metrics
     var numProjectsByDate = dateDim.group(); 
@@ -47,6 +52,7 @@ function makeGraphs(error, projectsJson, statesJson) {
         return d.poverty_level === 'low' ? d.total_donations : 0;
     });
 
+
     var all = ndx.groupAll();
     var totalDonations = ndx.groupAll().reduceSum(function(d) {return d["total_donations"];});
 
@@ -63,6 +69,8 @@ function makeGraphs(error, projectsJson, statesJson) {
     var usChart = dc.geoChoroplethChart("#us-chart");
     var numberProjectsND = dc.numberDisplay("#number-projects-nd");
     var totalDonationsND = dc.numberDisplay("#total-donations-nd");
+    var gradeLevelChart  = dc.barChart("#grade-level-chart");
+    
 
     // Stacked Bar Chart for Resource Type and Poverty Level
     var resourceTypePovertyLevelChart = dc.barChart("#resource-type-poverty-level-chart");
@@ -79,6 +87,7 @@ function makeGraphs(error, projectsJson, statesJson) {
 		.group(totalDonations)
 		.formatNumber(d3.format(".3s"));
 
+    
 	timeChart
 		.width(600)
 		.height(160)
@@ -126,7 +135,7 @@ function makeGraphs(error, projectsJson, statesJson) {
 
     // Configure the stacked bar chart
 		resourceTypePovertyLevelChart
-		.width(600)
+		.width(650)
 		.height(450) // Increased height
 		.dimension(resourceTypeDim)
 		.group(highPovertyGroup, "High Poverty")
@@ -143,6 +152,90 @@ function makeGraphs(error, projectsJson, statesJson) {
 			chart.selectAll('g.x text')
 				.attr('class', 'x-axis-label')
 		});
+
+        gradeLevelChart
+        .width(650)
+        .height(450)
+        .margins({top: 10, right: 50, bottom: 50, left: 50})
+        .dimension(gradeLevelDim)
+        .group(totalDonationsByGrade)
+        .transitionDuration(500)
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .xAxisLabel("Grade Level")
+        .yAxisLabel("Total Donations")
+        .elasticY(true)
+        .yAxis().ticks(6);
+
+        var gradeMapping = {
+            "Grades PreK-2": 1,
+            "Grades 3-5": 2,
+            // ... other grade levels
+        };
+        var gradeLevelDim = ndx.dimension(function(d) {
+            return gradeMapping[d["grade_level"]];
+        });
+        var gradeLevelLineChart = dc.lineChart("#grade-level-line-chart");
+        gradeLevelLineChart
+        .width(650)
+        .height(450)
+        .margins({top: 10, right: 50, bottom: 50, left: 50})
+        .dimension(gradeLevelDim)
+        .group(totalDonationsByGrade)
+        .transitionDuration(500)
+        .x(d3.scale.linear().domain([1, Object.keys(gradeMapping).length])) // Modify based on the number of grade levels
+        .elasticY(true)
+        .xAxisLabel("Grade Level")
+        .yAxisLabel("Total Donations")
+        .yAxis().ticks(6);
+
+    
+    //     var dateDim = ndx.dimension(function(d) { return d["date_posted"]; });
+    //     var povertyLevelDim = ndx.dimension(function(d) { return d["poverty_level"]; });
+    //     // ... other dimensions ...
+    
+    //     // Define groups for each poverty level
+    //     function reduceSumByPovertyLevel(povertyLevel) {
+    //         return function(d) {
+    //             return d.poverty_level === povertyLevel ? d.num_projects : 0;
+    //         };
+    //     }
+    
+    //     var numProjectsByDateHighPoverty = dateDim.group().reduceSum(reduceSumByPovertyLevel('high'));
+    //     var numProjectsByDateLowPoverty = dateDim.group().reduceSum(reduceSumByPovertyLevel('low'));
+    //     var numProjectsByDateModeratePoverty = dateDim.group().reduceSum(reduceSumByPovertyLevel('moderate'));
+    //     // ... groups for other poverty levels if needed ...
+    
+    //     // Define min and max dates
+    //     var minDate = dateDim.bottom(1)[0]["date_posted"];
+    //     var maxDate = dateDim.top(1)[0]["date_posted"];
+    
+    //     // Trend Line Chart for Number of Projects Over Time by Poverty Level
+    //     var projectsTrendChart = dc.compositeChart("#projects-trend-chart");
+    
+    //     projectsTrendChart
+    //         .width(600)
+    //         .height(400)
+    //         .margins({top: 30, right: 50, bottom: 25, left: 50})
+    //         .dimension(dateDim)
+    //         .x(d3.time.scale().domain([minDate, maxDate]))
+    //         .yAxisLabel("Number of Projects")
+    //         .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
+    //         .renderHorizontalGridLines(true)
+    //         .compose([
+    //             dc.lineChart(projectsTrendChart)
+    //                 .group(numProjectsByDateHighPoverty, 'High Poverty'),
+    //             dc.lineChart(projectsTrendChart)
+    //                 .group(numProjectsByDateLowPoverty, 'Low Poverty'),
+    //             dc.lineChart(projectsTrendChart)
+    //                 .group(numProjectsByDateModeratePoverty, 'Moderate Poverty')
+    //             // ... add other lines for different poverty levels ...
+    //         ])
+    //         .brushOn(false)
+    //         .elasticY(true)
+    //         .colors(d3.scale.ordinal().range(['red', 'green', 'blue']))
+    // .colorAccessor(function(d, i) { return i; }) // Assign different colors based on index
+    // .xAxis().tickFormat(d3.time.format('%Y'));  
 
     // Render all the charts
     dc.renderAll();
